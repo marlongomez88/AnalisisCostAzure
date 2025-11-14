@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure Cost Analysis - Ayura</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📊 Azure Cost Analysis</h1>
+            <p>Análisis Comparativo de Consumos de Azure</p>
+        </header>
+
+        <!-- Upload Section -->
+        <section class="upload-section" id="uploadSection">
+            <div class="upload-container">
+                <h2>📁 Carga de Archivos</h2>
+                <p>Arrastra o selecciona los archivos de Azure Cost Management (Excel/CSV)</p>
+                
+                <div class="upload-boxes">
+                    <div class="upload-box" id="uploadBox1">
+                        <input type="file" id="file1" accept=".xlsx,.xls,.csv" style="display: none">
+                        <div class="upload-content">
+                            <span class="upload-icon">📄</span>
+                            <p>Archivo Mes 1</p>
+                            <button onclick="document.getElementById('file1').click()" class="btn-upload">Seleccionar Archivo</button>
+                            <p class="file-name" id="fileName1"></p>
+                        </div>
+                    </div>
+
+                    <div class="upload-box" id="uploadBox2">
+                        <input type="file" id="file2" accept=".xlsx,.xls,.csv" style="display: none">
+                        <div class="upload-content">
+                            <span class="upload-icon">📄</span>
+                            <p>Archivo Mes 2</p>
+                            <button onclick="document.getElementById('file2').click()" class="btn-upload">Seleccionar Archivo</button>
+                            <p class="file-name" id="fileName2"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="processBtn" class="btn-primary" disabled>🔄 Procesar Análisis</button>
+                <div id="loadingMsg" class="loading-msg" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Procesando archivos...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section class="dashboard-section" id="dashboardSection" style="display: none;">
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <button onclick="exportPDF()" class="btn-action">📄 Exportar PDF</button>
+                <button onclick="exportExcel()" class="btn-action">📊 Exportar Excel</button>
+                <button onclick="resetApp()" class="btn-action">🔄 Nueva Comparación</button>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-container">
+                <div class="kpi-card">
+                    <div class="kpi-icon">💰</div>
+                    <div class="kpi-content">
+                        <h3>Gasto Mes 1</h3>
+                        <p class="kpi-value" id="kpiMonth1">$0</p>
+                        <p class="kpi-label" id="month1Name">-</p>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">💵</div>
+                    <div class="kpi-content">
+                        <h3>Gasto Mes 2</h3>
+                        <p class="kpi-value" id="kpiMonth2">$0</p>
+                        <p class="kpi-label" id="month2Name">-</p>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon" id="trendIcon">📈</div>
+                    <div class="kpi-content">
+                        <h3>Variación</h3>
+                        <p class="kpi-value" id="kpiVariation">0%</p>
+                        <p class="kpi-label" id="kpiVariationAbs">$0</p>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon">⚠️</div>
+                    <div class="kpi-content">
+                        <h3>Oportunidades</h3>
+                        <p class="kpi-value" id="kpiOpportunities">0</p>
+                        <p class="kpi-label">Ahorro potencial</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row 1 -->
+            <div class="chart-row">
+                <div class="chart-container">
+                    <h3>📊 Consumo Mensual Comparativo</h3>
+                    <canvas id="monthlyComparisonChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>🎯 Distribución por Categoría</h3>
+                    <canvas id="categoryPieChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Charts Row 2 -->
+            <div class="chart-row">
+                <div class="chart-container full-width">
+                    <h3>🏆 Top 10 Servicios por Costo</h3>
+                    <canvas id="topServicesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Charts Row 3 -->
+            <div class="chart-row">
+                <div class="chart-container full-width">
+                    <h3>💧 Análisis Waterfall - Cambios por Categoría</h3>
+                    <canvas id="waterfallChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Charts Row 4 -->
+            <div class="chart-row">
+                <div class="chart-container full-width">
+                    <h3>📈 Análisis Pareto - Distribución por Cliente/Área</h3>
+                    <canvas id="paretoChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Detailed Tables -->
+            <div class="tables-section">
+                <div class="table-container">
+                    <h3>📋 Análisis por Categoría</h3>
+                    <div id="categoryTable"></div>
+                </div>
+
+                <div class="table-container">
+                    <h3>🚀 Principales Impulsores de Costo</h3>
+                    <div id="driversTable"></div>
+                </div>
+
+                <div class="table-container">
+                    <h3>💡 Oportunidades de Ahorro</h3>
+                    <div id="savingsTable"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Librerías externas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Script principal -->
+    <script src="app.js"></script>
+</body>
+</html>
